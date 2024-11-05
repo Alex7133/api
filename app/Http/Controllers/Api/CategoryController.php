@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Resources\CategoryResource;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 use App\Models\Category;
+
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
@@ -27,7 +29,14 @@ class CategoryController extends Controller
 
     public function store(StoreCategoryRequest $request)
     {
-        $category = Category::create($request->all());
+        $data = $request->all();
+        if ($request->hasFile('photo')) {
+            $file = $request->file('photo');
+            $name = Str::uuid() . '.' . $file->extension();
+            $file->storeAs('categories', $name, 'public');
+            $data['photo'] = $name;
+        }
+        $category = Category::create($data);
         return new CategoryResource($category);
     }
 
